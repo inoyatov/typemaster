@@ -27,18 +27,25 @@ logger = logging.getLogger(__name__)
 @method_decorator(csrf_exempt, name="dispatch")
 class TelegramWebhookView(View):
     def post(self, request):
+        logger.info("Telegram webhook received request")
+
         if settings.TELEGRAM_WEBHOOK_SECRET:
             token = request.headers.get("X-Telegram-Bot-Api-Secret-Token", "")
             if token != settings.TELEGRAM_WEBHOOK_SECRET:
+                logger.warning("Telegram webhook: invalid secret token")
                 return JsonResponse({"error": "Forbidden"}, status=403)
 
         try:
             data = json.loads(request.body)
         except json.JSONDecodeError:
+            logger.error("Telegram webhook: invalid JSON body")
             return JsonResponse({"error": "Invalid JSON"}, status=400)
+
+        logger.info("Telegram webhook data: %s", data)
 
         message = data.get("message")
         if not message:
+            logger.info("Telegram webhook: no message in payload")
             return JsonResponse({"ok": True})
 
         chat_id = message["chat"]["id"]
@@ -47,10 +54,20 @@ class TelegramWebhookView(View):
 
         contact = message.get("contact")
         if contact:
+            logger.info(
+                "Telegram webhook: contact received from chat_id=%s", chat_id
+            )
             self._handle_contact(chat_id, contact, username)
             return JsonResponse({"ok": True})
 
         text = message.get("text", "")
+        logger.info(
+            "Telegram webhook: text=%s from chat_id=%s username=%s",
+            text,
+            chat_id,
+            username,
+        )
+
         if text.startswith("/start"):
             self._handle_start(chat_id, from_user, username)
         elif text.startswith("/login"):
@@ -72,7 +89,11 @@ class TelegramWebhookView(View):
 
     def _handle_contact(self, chat_id, contact, username):
         phone_number = contact.get("phone_number", "")
-        phone_number = phone_number.lstrip("+")
+        phone_number = (
+            f"+{phone_number}"
+            if not phone_number.startswith("+")
+            else phone_number
+        )
         first_name = contact.get("first_name", username or "")
         last_name = contact.get("last_name", "")
 
