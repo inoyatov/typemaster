@@ -46,3 +46,38 @@ class Lesson(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class CourseEnrollment(models.Model):
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="enrollments"
+    )
+    course = models.ForeignKey(
+        Course, on_delete=models.CASCADE, related_name="enrollments"
+    )
+    enrolled_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "course_enrollment"
+        unique_together = (("user", "course"),)
+
+    def __str__(self):
+        return f"{self.user} — {self.course}"
+
+
+class CompletedLesson(models.Model):
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="completed_lessons"
+    )
+    lesson = models.ForeignKey(
+        Lesson, on_delete=models.CASCADE, related_name="completions"
+    )
+    duration = models.PositiveIntegerField(help_text="Time spent in seconds")
+    error_count = models.PositiveIntegerField(default=0)
+    completed_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "completed_lesson"
+
+    def __str__(self):
+        return f"{self.user} — {self.lesson}"
