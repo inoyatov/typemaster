@@ -37,7 +37,7 @@ ignore = [
 ]
 
 [tool.ruff.lint.isort]
-known-first-party = ["accounts", "payments", "typemaster", "config"]
+known-first-party = ["accounts", "payments", "keypro", "config"]
 
 [tool.ruff.format]
 quote-style = "double"

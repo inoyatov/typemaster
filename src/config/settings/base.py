@@ -68,7 +68,7 @@ THIRD_PARTY_APPS = [
     "corsheaders",
 ]
 
-LOCAL_APPS = ["accounts", "payments", "typemaster"]
+LOCAL_APPS = ["accounts", "payments", "keypro"]
 
 INSTALLED_APPS = BASE_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
