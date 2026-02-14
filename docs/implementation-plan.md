@@ -137,11 +137,11 @@ Building a touch typing tutor web application (backend API). The project is a Dj
 
 ---
 
-## Phase 4: Typemaster - Lessons & Sections
+## Phase 4: KeyPro - Lessons & Sections
 
 **Goal:** Set up lessons with keyboard layout variants, each containing 100 sections of text to type. First 10 sections are free, rest require active subscription.
 
-### 4.1 Models (`src/typemaster/models.py`)
+### 4.1 Models (`src/keypro/models.py`)
 
 **KeyboardLayout:**
 - `name` (e.g., "US QWERTY", "Cyrillic ЙЦУКЕН", "German QWERTZ")
@@ -168,21 +168,21 @@ Building a touch typing tutor web application (backend API). The project is a Dj
 - Sections with `order > 10` → require active subscription (check `Subscription.expires_at > now`)
 
 ### 4.3 Files to modify/create
-- `src/typemaster/models.py` - KeyboardLayout, Lesson, Section models
-- `src/typemaster/serializers.py` - Serializers
-- `src/typemaster/views.py` - ViewSets
-- `src/typemaster/urls.py` - URL routing
-- `src/typemaster/admin.py` - Admin for managing lessons/sections
-- `src/typemaster/permissions.py` - Custom permission for subscription check
-- `src/config/urls/base.py` - Include typemaster URLs
+- `src/keypro/models.py` - KeyboardLayout, Lesson, Section models
+- `src/keypro/serializers.py` - Serializers
+- `src/keypro/views.py` - ViewSets
+- `src/keypro/urls.py` - URL routing
+- `src/keypro/admin.py` - Admin for managing lessons/sections
+- `src/keypro/permissions.py` - Custom permission for subscription check
+- `src/config/urls/base.py` - Include keypro URLs
 
 ---
 
-## Phase 5: Typemaster - Progress & Stats Tracking
+## Phase 5: KeyPro - Progress & Stats Tracking
 
 **Goal:** Track user progress through lessons and record typing session statistics (WPM, accuracy, error keys).
 
-### 5.1 Models (`src/typemaster/models.py`)
+### 5.1 Models (`src/keypro/models.py`)
 
 **UserProgress:**
 - `user` (FK to User)
@@ -201,19 +201,19 @@ Building a touch typing tutor web application (backend API). The project is a Dj
 - `completed_at` (timestamp)
 
 ### 5.2 API Endpoints
-1. **`GET /api/typemaster/layouts/`** - List keyboard layouts
-2. **`GET /api/typemaster/lessons/?layout=<code>`** - List lessons for a layout
-3. **`GET /api/typemaster/lessons/<id>/sections/`** - List sections (free ones always, paid if subscribed)
-4. **`GET /api/typemaster/sections/<id>/`** - Get section text content (with permission check)
-5. **`POST /api/typemaster/sessions/`** - Submit typing session result (WPM, accuracy, errors)
-6. **`GET /api/typemaster/progress/`** - Get user's progress across all lessons
-7. **`GET /api/typemaster/stats/`** - Get user's overall stats (avg WPM, accuracy, most error-prone keys)
+1. **`GET /api/keypro/layouts/`** - List keyboard layouts
+2. **`GET /api/keypro/lessons/?layout=<code>`** - List lessons for a layout
+3. **`GET /api/keypro/lessons/<id>/sections/`** - List sections (free ones always, paid if subscribed)
+4. **`GET /api/keypro/sections/<id>/`** - Get section text content (with permission check)
+5. **`POST /api/keypro/sessions/`** - Submit typing session result (WPM, accuracy, errors)
+6. **`GET /api/keypro/progress/`** - Get user's progress across all lessons
+7. **`GET /api/keypro/stats/`** - Get user's overall stats (avg WPM, accuracy, most error-prone keys)
 
 ### 5.3 Files to modify/create
-- `src/typemaster/models.py` - Add UserProgress, TypingSession
-- `src/typemaster/serializers.py` - Add session/progress serializers
-- `src/typemaster/views.py` - Add endpoints
-- `src/typemaster/urls.py` - Wire up URLs
+- `src/keypro/models.py` - Add UserProgress, TypingSession
+- `src/keypro/serializers.py` - Add session/progress serializers
+- `src/keypro/views.py` - Add endpoints
+- `src/keypro/urls.py` - Wire up URLs
 
 ---
 
@@ -224,8 +224,8 @@ Building a touch typing tutor web application (backend API). The project is a Dj
 | 1 | Telegram OTP Auth (Phase 1) | Nothing - start here |
 | 2 | Voucher & Subscription Models (Phase 2) | Phase 1 (need auth) |
 | 3 | Via Payment Integration (Phase 3) | Phase 2 (need voucher models) |
-| 4 | Typemaster Lessons & Sections (Phase 4) | Phase 1 (need auth) |
-| 5 | Typemaster Progress & Stats (Phase 5) | Phase 4 (need lesson models) |
+| 4 | KeyPro Lessons & Sections (Phase 4) | Phase 1 (need auth) |
+| 5 | KeyPro Progress & Stats (Phase 5) | Phase 4 (need lesson models) |
 
 ---
 
@@ -234,6 +234,6 @@ Building a touch typing tutor web application (backend API). The project is a Dj
 1. **Telegram Auth:** Start bot, send `/start`, request OTP via API, verify OTP, receive JWT tokens
 2. **Vouchers:** Create plan in admin, purchase voucher via API, verify code generated, activate voucher, check subscription active
 3. **Payments:** Mock Via callback, verify payment status updates and voucher creation
-4. **Typemaster:** Create layout + lesson + sections via admin, fetch sections (verify free access), try accessing section 11 without subscription (should fail), activate subscription, try again (should succeed)
+4. **KeyPro:** Create layout + lesson + sections via admin, fetch sections (verify free access), try accessing section 11 without subscription (should fail), activate subscription, try again (should succeed)
 5. **Stats:** Submit typing session, check progress updates, verify error key tracking
 6. **Run tests:** `make test` after each phase

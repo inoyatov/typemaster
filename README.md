@@ -137,7 +137,7 @@ solo-on-keyboard/
 │   │   └── urls/
 │   ├── accounts/          # User model, auth, serializers
 │   ├── payments/          # Plans, vouchers, subscriptions
-│   └── typemaster/        # Layouts, lessons, sections, sessions
+│   └── keypro/            # Layouts, lessons, sections, sessions
 ├── tests/                 # Test suite
 ├── Makefile
 └── requirements.txt
@@ -161,7 +161,7 @@ solo-on-keyboard/
 | POST | `/api/vouchers/apply/` | Apply a voucher code |
 | GET | `/api/subscription/` | Current user subscription |
 
-### Typemaster
+### KeyPro
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
