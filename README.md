@@ -183,10 +183,10 @@ Defined in `deployments/development/env`:
 |----------|-------------|---------|
 | `DJANGO_SETTINGS_MODULE` | Settings module path | `config.settings.development` |
 | `ENV_DJANGO_SECRET_KEY` | Django secret key | Auto-generated |
-| `ENV_POSTGRES_DB_NAME` | Database name | `sok` |
+| `ENV_POSTGRES_DB_NAME` | Database name | `ttm` |
 | `ENV_POSTGRES_DB_HOST` | Database host | `localhost` |
 | `ENV_POSTGRES_DB_PORT` | Database port | `15432` |
-| `ENV_POSTGRES_DB_USER` | Database user | `sokadmin` |
+| `ENV_POSTGRES_DB_USER` | Database user | `ttmadmin` |
 | `ENV_POSTGRES_DB_PASSWORD` | Database password | `password` |
 | `ENV_POSTGRES_DB_CONN_MAX_AGE` | DB connection max age | `0` |
 | `ENV_REDIS_PORT` | Redis port | `6379` |

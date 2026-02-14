@@ -189,3 +189,13 @@ USE_TZ = True
 ###############################################################################
 SHELL_PLUS = "ipython"
 SHELL_PLUS_PRINT_SQL = True
+
+
+###############################################################################
+# Telegram Bot & OTP Configuration
+###############################################################################
+TELEGRAM_BOT_TOKEN = os.environ.get("ENV_TELEGRAM_BOT_TOKEN", "")
+TELEGRAM_WEBHOOK_URL = os.environ.get("ENV_TELEGRAM_WEBHOOK_URL", "")
+TELEGRAM_WEBHOOK_SECRET = os.environ.get("ENV_TELEGRAM_WEBHOOK_SECRET", "")
+OTP_LENGTH = 12
+OTP_EXPIRY_MINUTES = 1
