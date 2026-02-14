@@ -21,6 +21,8 @@ class LessonListView(ListAPIView):
     permission_classes = [AllowAny]
 
     def get_queryset(self):
+        if getattr(self, "swagger_fake_view", False):
+            return Lesson.objects.none()
         return Lesson.objects.filter(
             course__slug=self.kwargs["course_slug"],
             is_active=True,
@@ -32,6 +34,8 @@ class LessonDetailView(RetrieveAPIView):
     permission_classes = [AllowAny, HasLessonAccess]
 
     def get_queryset(self):
+        if getattr(self, "swagger_fake_view", False):
+            return Lesson.objects.none()
         return Lesson.objects.filter(
             course__slug=self.kwargs["course_slug"],
             is_active=True,
