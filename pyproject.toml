@@ -1,0 +1,45 @@
+# =============================================================================
+# Ruff — linting & formatting (replaces black, isort, flake8)
+# https://docs.astral.sh/ruff/configuration/
+# =============================================================================
+
+[tool.ruff]
+target-version = "py312"
+line-length = 80
+
+exclude = [
+    ".venv",
+    "venv",
+    "build",
+    "dist",
+    ".mypy_cache",
+    ".ruff_cache",
+    ".pytest_cache",
+    "node_modules",
+    "*/migrations/*",
+]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort (import sorting)
+    "B",   # flake8-bugbear
+    "UP",  # pyupgrade
+    "SIM", # flake8-simplify
+    "C4",  # flake8-comprehensions
+    "DJ",  # flake8-django
+]
+ignore = [
+    "E501",   # line too long — handled by formatter
+    "DJ001",  # avoid nullable CharField — too noisy for existing projects
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["accounts", "payments", "typemaster", "config"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+docstring-code-format = true

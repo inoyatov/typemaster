@@ -1,0 +1,18 @@
+version: "3"
+services:
+  postgres-service:
+    image: postgres:18.2
+    restart: always
+    container_name: "sok-postgres"
+    environment:
+      - POSTGRES_DB=${ENV_POSTGRES_DB_NAME}
+      - POSTGRES_USER=${ENV_POSTGRES_DB_USER}
+      - POSTGRES_PASSWORD=${ENV_POSTGRES_DB_PASSWORD}
+    ports:
+      - 127.0.0.1:${ENV_POSTGRES_DB_PORT}:5432
+    volumes:
+      - ./postgres-data/db:/var/lib/postgresql
+
+volumes:
+  academy:
+    driver: local
