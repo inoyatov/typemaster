@@ -9,7 +9,7 @@ jobs:
       - name: Checkout changes
         uses: actions/checkout@v3
       - name: Deploys to Heroku
-        uses: akhileshns/heroku-deploy@v3.12.14
+        uses: akhileshns/heroku-deploy@v3.14.15
         with:
           heroku_api_key: ${{secrets.PROD_HEROKU_API_KEY}}
           heroku_app_name: ${{secrets.PROD_HEROKU_APP_NAME}}
