@@ -29,7 +29,7 @@ SECURE_SSL_REDIRECT = True
 MAX_CONN_AGE = 600
 DATABASES = {
     "default": dj_database_url.config(
-        env="ENV_POSTGRES_DB_URL",
+        env="DATABASE_URL",
         conn_max_age=int(
             os.environ.get("ENV_POSTGRES_DB_CONN_MAX_AGE", MAX_CONN_AGE),
         ),
