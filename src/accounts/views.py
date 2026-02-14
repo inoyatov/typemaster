@@ -8,18 +8,26 @@ from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
-from rest_framework.permissions import AllowAny
+from rest_framework.generics import ListAPIView, RetrieveUpdateAPIView
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from accounts.models import AuthCode, AuthCodeExistsException, User
-from accounts.serializers import AuthCodeSerializer
+from accounts.serializers import (
+    AuthCodeSerializer,
+    MyEnrolledCourseSerializer,
+    MyProfileSerializer,
+    MySubscriptionSerializer,
+)
 from accounts.services import (
     send_contact_request,
     send_message,
     send_remove_keyboard,
 )
+from keypro.models import CourseEnrollment
+from payments.models import Subscription
 
 logger = logging.getLogger(__name__)
 
@@ -167,3 +175,42 @@ class TokenObtainView(APIView):
                 "phone_number": str(user.phone_number),
             }
         )
+
+
+class MyProfileView(RetrieveUpdateAPIView):
+    serializer_class = MyProfileSerializer
+    permission_classes = [IsAuthenticated]
+    http_method_names = ["get", "patch"]
+
+    def get_object(self):
+        return self.request.user
+
+
+class MySubscriptionView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        now = timezone.now()
+        subscription = (
+            Subscription.objects.filter(
+                user=request.user,
+                starts_at__lte=now,
+                expires_at__gte=now,
+            )
+            .select_related("plan")
+            .first()
+        )
+        if not subscription:
+            return Response({"subscription": None})
+        serializer = MySubscriptionSerializer(subscription)
+        return Response({"subscription": serializer.data})
+
+
+class MyEnrolledCoursesView(ListAPIView):
+    serializer_class = MyEnrolledCourseSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return CourseEnrollment.objects.filter(
+            user=self.request.user,
+        ).select_related("course")
