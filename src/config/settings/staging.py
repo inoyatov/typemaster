@@ -13,6 +13,7 @@ DEBUG = False
 ALLOWED_HOSTS = os.environ.get("ENV_ALLOWED_HOSTS", "*").split(",")
 ROOT_URLCONF = "config.urls.staging"
 ENVIRONMENT = ENVIRONMENTS.STAGING  # noqa
+INSTALLED_APPS += ["drf_yasg"]  # noqa
 
 
 ###############################################################################

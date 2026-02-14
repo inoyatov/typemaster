@@ -6,5 +6,4 @@ psycopg2-binary==2.9.11
 phonenumbers==9.0.24
 django-phonenumber-field==8.4.0
 Pillow==11.1.0
-drf-yasg==1.21.8
 python-telegram-bot==22.6
