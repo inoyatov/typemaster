@@ -1,0 +1,16 @@
+name: Deploy To Production
+
+on: [workflow_dispatch]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout changes
+        uses: actions/checkout@v3
+      - name: Deploys to Heroku
+        uses: akhileshns/heroku-deploy@v3.12.14
+        with:
+          heroku_api_key: ${{secrets.PROD_HEROKU_API_KEY}}
+          heroku_app_name: ${{secrets.PROD_HEROKU_APP_NAME}}
+          heroku_email: ${{secrets.PROD_HEROKU_EMAIL}}
