@@ -114,4 +114,16 @@ pre-commit-all:
 	@# Run pre-commit on all files
 	. $(VENV) && pre-commit run --all-files
 
+get-auth-code: venv
+	@# Generate an auth code for a user by telegram username
+	. $(VENV) && $(PYTHON) src/manage.py get_auth_code $(USERNAME)
+
+set-webhook: venv
+	@# Register the Telegram webhook
+	. $(VENV) && $(PYTHON) src/manage.py set_telegram_webhook
+
+delete-webhook: venv
+	@# Remove the Telegram webhook
+	. $(VENV) && $(PYTHON) src/manage.py set_telegram_webhook --delete
+
 .PHONY: bundle

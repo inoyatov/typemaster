@@ -1,0 +1,8 @@
+export DJANGO_SETTINGS_MODULE="config.settings.test"
+export ENV_DJANGO_SECRET_KEY="test-secret-key-not-for-production"
+export ENV_POSTGRES_DB_NAME="ttm_test"
+export ENV_POSTGRES_DB_HOST="localhost"
+export ENV_POSTGRES_DB_PORT="5432"
+export ENV_POSTGRES_DB_USER="admin"
+export ENV_POSTGRES_DB_PASSWORD="password"
+export ENV_POSTGRES_DB_CONN_MAX_AGE=0

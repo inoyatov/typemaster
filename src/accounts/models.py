@@ -19,6 +19,17 @@ class User(AbstractBaseUser, PermissionsMixin):
     first_name = models.CharField(_("first name"), max_length=150)
     last_name = models.CharField(_("last name"), max_length=150)
 
+    telegram_chat_id = models.BigIntegerField(
+        _("telegram chat ID"), null=True, blank=True, unique=True
+    )
+    telegram_username = models.CharField(
+        _("telegram username"),
+        max_length=150,
+        null=True,
+        blank=True,
+        unique=True,
+    )
+
     phone_number = PhoneNumberField(_("phone number"), blank=True)
     nickname = models.CharField(_("nickname"), max_length=150, blank=True)
     display_name = models.CharField(
@@ -84,3 +95,48 @@ class User(AbstractBaseUser, PermissionsMixin):
     @property
     def phone_number_formatted(self):
         return self.phone_number.as_e164.replace("+", "")
+
+
+class AuthCodeExistsException(Exception):
+    pass
+
+
+class AuthCode(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, db_index=True)
+    code = models.CharField(max_length=20, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+
+    class Meta:
+        db_table = "auth_code"
+        ordering = ("-created_at",)
+
+    def __str__(self):
+        return f"AuthCode for {self.user} — {self.code}"
+
+    @property
+    def is_expired(self):
+        return timezone.now() > self.expires_at
+
+    @classmethod
+    def create_for_user(cls, user):
+        from datetime import timedelta
+
+        from django.conf import settings
+
+        if hasattr(user, "authcode"):
+            if user.authcode.is_expired:
+                user.authcode.delete()
+            else:
+                raise AuthCodeExistsException("Code already exists")
+
+        return cls.objects.create(
+            user=user,
+            code="".join(
+                __import__("random").choices(
+                    "0123456789", k=settings.OTP_LENGTH
+                )
+            ),
+            expires_at=timezone.now()
+            + timedelta(minutes=settings.OTP_EXPIRY_MINUTES),
+        )
