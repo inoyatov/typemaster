@@ -4,3 +4,4 @@ gunicorn==23.0.0
 dj-database-url==2.3.0
 whitenoise==6.9.0
 sentry-sdk==2.22.0
+drf-yasg==1.21.8

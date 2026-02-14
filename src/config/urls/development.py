@@ -11,7 +11,7 @@ schema_view = get_schema_view(
     openapi.Info(
         title="Academy API",
         default_version="v1",
-        description="API used for Online Academy Project",
+        description="API used for Keyboard Professional Project",
         terms_of_service="https://www.google.com/policies/terms/",
         contact=openapi.Contact(email="contact@snippets.local"),
         license=openapi.License(name="BSD License"),

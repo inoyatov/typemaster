@@ -2,6 +2,7 @@ from rest_framework.generics import ListAPIView, RetrieveAPIView
 from rest_framework.permissions import AllowAny
 
 from keypro.models import Course, Lesson
+from keypro.permissions import HasLessonAccess
 from keypro.serializers import (
     CourseListSerializer,
     LessonDetailSerializer,
@@ -28,7 +29,7 @@ class LessonListView(ListAPIView):
 
 class LessonDetailView(RetrieveAPIView):
     serializer_class = LessonDetailSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [AllowAny, HasLessonAccess]
 
     def get_queryset(self):
         return Lesson.objects.filter(
