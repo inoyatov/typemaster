@@ -205,3 +205,12 @@ TELEGRAM_WEBHOOK_URL = os.environ.get("ENV_TELEGRAM_WEBHOOK_URL", "")
 TELEGRAM_WEBHOOK_SECRET = os.environ.get("ENV_TELEGRAM_WEBHOOK_SECRET", "")
 OTP_LENGTH = int(os.environ.get("ENV_OTP_LENGTH", 12))
 OTP_EXPIRY_MINUTES = 1
+
+
+###############################################################################
+# Via Payment Gateway
+###############################################################################
+VIA_API_BASE_URL = os.environ.get("ENV_VIA_API_BASE_URL", "")
+VIA_API_CLIENT_ID = os.environ.get("ENV_VIA_API_CLIENT_ID", "")
+VIA_API_CLIENT_SECRET = os.environ.get("ENV_VIA_API_CLIENT_SECRET", "")
+VIA_MERCHANT_ID = os.environ.get("ENV_VIA_MERCHANT_ID", "")
