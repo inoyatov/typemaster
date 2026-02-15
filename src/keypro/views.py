@@ -1,5 +1,6 @@
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 from rest_framework.permissions import AllowAny
+from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from keypro.models import Course, Lesson
 from keypro.permissions import HasLessonAccess
@@ -13,11 +14,13 @@ from keypro.serializers import (
 class CourseListView(ListAPIView):
     queryset = Course.objects.filter(is_active=True)
     serializer_class = CourseListSerializer
+    authentication_classes = []
     permission_classes = [AllowAny]
 
 
 class LessonListView(ListAPIView):
     serializer_class = LessonListSerializer
+    authentication_classes = []
     permission_classes = [AllowAny]
 
     def get_queryset(self):
@@ -31,6 +34,7 @@ class LessonListView(ListAPIView):
 
 class LessonDetailView(RetrieveAPIView):
     serializer_class = LessonDetailSerializer
+    authentication_classes = [JWTAuthentication]
     permission_classes = [AllowAny, HasLessonAccess]
 
     def get_queryset(self):
