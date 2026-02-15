@@ -53,3 +53,4 @@ docstring-code-format = true
 DJANGO_SETTINGS_MODULE = "config.settings.test"
 pythonpath = ["src"]
 testpaths = ["tests"]
+addopts = "--import-mode=importlib"
