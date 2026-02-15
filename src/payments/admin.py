@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from payments.models import Subscription, SubscriptionPlan
+from payments.models import PaymentAttempt, Subscription, SubscriptionPlan
 
 
 @admin.register(SubscriptionPlan)
@@ -15,3 +15,12 @@ class SubscriptionAdmin(admin.ModelAdmin):
     list_filter = ("plan",)
     search_fields = ("user__email",)
     raw_id_fields = ("user",)
+
+
+@admin.register(PaymentAttempt)
+class PaymentAttemptAdmin(admin.ModelAdmin):
+    list_display = ("guid", "user", "plan", "amount", "status", "created_at")
+    list_filter = ("status",)
+    search_fields = ("user__email", "guid")
+    raw_id_fields = ("user",)
+    readonly_fields = ("guid",)

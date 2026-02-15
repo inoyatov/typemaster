@@ -7,3 +7,4 @@ phonenumbers==9.0.24
 django-phonenumber-field==8.4.0
 Pillow==11.1.0
 python-telegram-bot==22.6
+requests==2.32.5
