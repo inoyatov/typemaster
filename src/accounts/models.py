@@ -1,3 +1,4 @@
+import secrets
 import uuid
 
 from django.contrib.auth.base_user import AbstractBaseUser
@@ -103,7 +104,7 @@ class AuthCodeExistsException(Exception):
 
 class AuthCode(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, db_index=True)
-    code = models.CharField(max_length=20, db_index=True)
+    code = models.CharField(max_length=20, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
     expires_at = models.DateTimeField()
 
@@ -119,10 +120,11 @@ class AuthCode(models.Model):
         return timezone.now() > self.expires_at
 
     @classmethod
-    def create_for_user(cls, user):
+    def create_for_user(cls, user, max_attempts=3):
         from datetime import timedelta
 
         from django.conf import settings
+        from django.db import IntegrityError, transaction
 
         if hasattr(user, "authcode"):
             if user.authcode.is_expired:
@@ -130,13 +132,19 @@ class AuthCode(models.Model):
             else:
                 raise AuthCodeExistsException("Code already exists")
 
-        return cls.objects.create(
-            user=user,
-            code="".join(
-                __import__("random").choices(
-                    "0123456789", k=settings.OTP_LENGTH
-                )
-            ),
-            expires_at=timezone.now()
-            + timedelta(minutes=settings.OTP_EXPIRY_MINUTES),
-        )
+        digits = "0123456789"
+        for attempt in range(max_attempts):
+            code = "".join(
+                secrets.choice(digits) for _ in range(settings.OTP_LENGTH)
+            )
+            try:
+                with transaction.atomic():
+                    return cls.objects.create(
+                        user=user,
+                        code=code,
+                        expires_at=timezone.now()
+                        + timedelta(minutes=settings.OTP_EXPIRY_MINUTES),
+                    )
+            except IntegrityError:
+                if attempt == max_attempts - 1:
+                    raise
