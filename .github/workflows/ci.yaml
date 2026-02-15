@@ -61,4 +61,4 @@ jobs:
       - name: Run migrations
         run: python src/manage.py migrate
       - name: Run tests
-        run: python src/manage.py test
+        run: pytest
