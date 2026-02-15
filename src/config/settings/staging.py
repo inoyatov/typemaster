@@ -62,6 +62,8 @@ MIDDLEWARE.insert(  # noqa
 ###############################################################################
 CORS_ALLOWED_ORIGIN_REGEXES = [
     r"^https://.*\.vercel\.app$",
+    r"^http://localhost:\d+$",
+    r"^http://127\.0\.0\.1:\d+$",
 ]
 
 
