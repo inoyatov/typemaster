@@ -24,6 +24,7 @@ class AuthCodeSerializer(serializers.Serializer):
             ) from None
 
         if auth_code.is_expired:
+            auth_code.delete()
             raise serializers.ValidationError(
                 "Submitted code has expired. "
                 "Please obtain a new one by using the Telegram bot."
