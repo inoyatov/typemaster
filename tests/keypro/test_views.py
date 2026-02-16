@@ -13,12 +13,15 @@ def lesson_detail_url(course_slug, lesson_pk):
 
 @pytest.mark.django_db
 class TestLessonDetailViewAnonymousFreeLesson:
-    def test_anonymous_can_access_free_lesson(self, api_client, free_lesson):
+    def test_anonymous_can_access_free_lesson(
+        self, api_client, free_lesson, free_assignment
+    ):
         url = lesson_detail_url(free_lesson.course.slug, free_lesson.pk)
         response = api_client.get(url)
         assert response.status_code == 200
         assert response.data["id"] == free_lesson.pk
-        assert response.data["text_content"] == "Free content"
+        assert len(response.data["assignments"]) == 1
+        assert response.data["assignments"][0]["text_content"] == "Free content"
 
 
 @pytest.mark.django_db
@@ -32,7 +35,7 @@ class TestLessonDetailViewAnonymousPaidLesson:
 @pytest.mark.django_db
 class TestLessonDetailViewAuthenticatedFreeLesson:
     def test_authenticated_can_access_free_lesson(
-        self, auth_client, free_lesson
+        self, auth_client, free_lesson, free_assignment
     ):
         url = lesson_detail_url(free_lesson.course.slug, free_lesson.pk)
         response = auth_client.get(url)
@@ -60,13 +63,18 @@ class TestLessonDetailViewAuthenticatedPaidLessonNoSubscription:
 @pytest.mark.django_db
 class TestLessonDetailViewAuthenticatedPaidLessonWithSubscription:
     def test_subscriber_can_access_paid_lesson(
-        self, auth_client, paid_lesson, active_subscription
+        self,
+        auth_client,
+        paid_lesson,
+        paid_assignment,
+        active_subscription,
     ):
         url = lesson_detail_url(paid_lesson.course.slug, paid_lesson.pk)
         response = auth_client.get(url)
         assert response.status_code == 200
         assert response.data["id"] == paid_lesson.pk
-        assert response.data["text_content"] == "Paid content"
+        assert len(response.data["assignments"]) == 1
+        assert response.data["assignments"][0]["text_content"] == "Paid content"
 
     def test_expired_subscriber_cannot_access_paid_lesson(
         self, auth_client, paid_lesson, expired_subscription
@@ -82,7 +90,6 @@ class TestLessonDetailViewInactiveLesson:
         lesson = Lesson.objects.create(
             course=course,
             title="Inactive",
-            text_content="Hidden",
             order=3,
             is_free=True,
             is_active=False,

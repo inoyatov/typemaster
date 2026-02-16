@@ -25,7 +25,7 @@ pytest tests/
 
 # Run a single test file or test
 pytest tests/keypro/test_views.py
-pytest tests/keypro/test_views.py::TestLessonDetailView::test_free_lesson_accessible
+pytest tests/keypro/test_views.py::TestLessonDetailViewAnonymousFreeLesson::test_anonymous_can_access_free_lesson
 
 # Linting and formatting
 make lint          # check
@@ -56,7 +56,7 @@ export ENV_DJANGO_SECRET_KEY="test-secret-key"
 ### Django Apps (all under `src/`)
 
 - **accounts** — Custom `User` model (email-based, Telegram-linked), `AuthCode` for OTP, JWT token endpoints, user profile
-- **keypro** — `Course`, `Lesson`, `CourseEnrollment`, `CompletedLesson`. Lessons have `is_free` flag; paid lessons require active subscription
+- **keypro** — `Course`, `Lesson`, `Assignment`, `CourseEnrollment`, `CompletedAssignment`. Lessons have `is_free` flag; paid lessons require active subscription
 - **payments** — `SubscriptionPlan`, `Subscription`, `PaymentAttempt` (state machine: INITIATED → PENDING → SUCCESS/FAILED). Via payment gateway client at `payments/clients/via/client.py`
 - **config** — Settings (base/development/staging/production/test), URL routing, WSGI/ASGI
 
@@ -70,8 +70,8 @@ export ENV_DJANGO_SECRET_KEY="test-secret-key"
 /api/auth/my/subscription/       → Active subscription
 /api/auth/my/enrolled-courses/   → Enrolled courses
 /api/courses/                    → List courses
-/api/courses/<slug>/lessons/     → List lessons
-/api/courses/<slug>/lessons/<id>/ → Lesson detail (permission-gated)
+/api/courses/<slug>/lessons/          → List lessons
+/api/courses/<slug>/lessons/<id>/     → Lesson detail (permission-gated, includes assignments)
 /api/subscription-plans/         → List plans
 /api/subscription/pay/initiate/  → Start card payment
 /api/subscription/pay/verify/    → Verify SMS code
