@@ -2,7 +2,7 @@ from django.conf import settings
 from rest_framework import serializers
 
 from accounts.models import AuthCode, User
-from keypro.models import CompletedLesson, CourseEnrollment
+from keypro.models import Assignment, CompletedAssignment, CourseEnrollment
 from payments.models import Subscription
 
 
@@ -62,8 +62,8 @@ class MySubscriptionSerializer(serializers.ModelSerializer):
 class MyEnrolledCourseSerializer(serializers.ModelSerializer):
     course_title = serializers.CharField(source="course.title", read_only=True)
     course_slug = serializers.CharField(source="course.slug", read_only=True)
-    total_lessons = serializers.SerializerMethodField()
-    completed_lessons = serializers.SerializerMethodField()
+    total_assignments = serializers.SerializerMethodField()
+    completed_assignments = serializers.SerializerMethodField()
 
     class Meta:
         model = CourseEnrollment
@@ -71,22 +71,24 @@ class MyEnrolledCourseSerializer(serializers.ModelSerializer):
             "id",
             "course_title",
             "course_slug",
-            "total_lessons",
-            "completed_lessons",
+            "total_assignments",
+            "completed_assignments",
             "enrolled_at",
         ]
 
-    def get_total_lessons(self, obj):
-        return obj.course.lessons.filter(is_active=True).count()
+    def get_total_assignments(self, obj):
+        return Assignment.objects.filter(
+            lesson__course=obj.course, is_active=True
+        ).count()
 
-    def get_completed_lessons(self, obj):
+    def get_completed_assignments(self, obj):
         user = self.context["request"].user
         return (
-            CompletedLesson.objects.filter(
+            CompletedAssignment.objects.filter(
                 user=user,
-                lesson__course=obj.course,
+                assignment__lesson__course=obj.course,
             )
-            .values("lesson")
+            .values("assignment")
             .distinct()
             .count()
         )

@@ -1,9 +1,11 @@
 from rest_framework import serializers
 
-from keypro.models import Course, Lesson
+from keypro.models import Assignment, Course, Lesson
 
 
 class CourseListSerializer(serializers.ModelSerializer):
+    total_lessons = serializers.IntegerField(read_only=True)
+
     class Meta:
         model = Course
         fields = [
@@ -16,6 +18,7 @@ class CourseListSerializer(serializers.ModelSerializer):
             "is_active",
             "order",
             "created_at",
+            "total_lessons",
         ]
 
 
@@ -33,7 +36,23 @@ class LessonListSerializer(serializers.ModelSerializer):
         ]
 
 
+class AssignmentEmbeddedSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Assignment
+        fields = [
+            "id",
+            "title",
+            "description",
+            "order",
+            "text_content",
+            "is_active",
+            "created_at",
+        ]
+
+
 class LessonDetailSerializer(serializers.ModelSerializer):
+    assignments = serializers.SerializerMethodField()
+
     class Meta:
         model = Lesson
         fields = [
@@ -42,8 +61,12 @@ class LessonDetailSerializer(serializers.ModelSerializer):
             "title",
             "description",
             "order",
-            "text_content",
             "is_free",
             "is_active",
             "created_at",
+            "assignments",
         ]
+
+    def get_assignments(self, obj):
+        active_assignments = obj.assignments.filter(is_active=True)
+        return AssignmentEmbeddedSerializer(active_assignments, many=True).data

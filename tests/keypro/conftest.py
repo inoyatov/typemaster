@@ -3,7 +3,7 @@ from datetime import timedelta
 import pytest
 from django.utils import timezone
 
-from keypro.models import Course, Lesson
+from keypro.models import Assignment, Course, Lesson
 from payments.models import Subscription, SubscriptionPlan
 
 
@@ -21,7 +21,6 @@ def free_lesson(course):
     return Lesson.objects.create(
         course=course,
         title="Free Lesson",
-        text_content="Free content",
         order=1,
         is_free=True,
         is_active=True,
@@ -33,9 +32,30 @@ def paid_lesson(course):
     return Lesson.objects.create(
         course=course,
         title="Paid Lesson",
-        text_content="Paid content",
         order=2,
         is_free=False,
+        is_active=True,
+    )
+
+
+@pytest.fixture
+def free_assignment(free_lesson):
+    return Assignment.objects.create(
+        lesson=free_lesson,
+        title="Free Assignment",
+        text_content="Free content",
+        order=1,
+        is_active=True,
+    )
+
+
+@pytest.fixture
+def paid_assignment(paid_lesson):
+    return Assignment.objects.create(
+        lesson=paid_lesson,
+        title="Paid Assignment",
+        text_content="Paid content",
+        order=1,
         is_active=True,
     )
 

@@ -34,7 +34,6 @@ class Lesson(models.Model):
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True)
     order = models.PositiveIntegerField(default=0)
-    text_content = models.TextField()
     is_free = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -43,6 +42,26 @@ class Lesson(models.Model):
         ordering = ("order",)
         db_table = "lesson"
         unique_together = (("course", "order"),)
+
+    def __str__(self):
+        return self.title
+
+
+class Assignment(models.Model):
+    lesson = models.ForeignKey(
+        Lesson, on_delete=models.CASCADE, related_name="assignments"
+    )
+    title = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+    order = models.PositiveIntegerField(default=0)
+    text_content = models.TextField()
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ("order",)
+        db_table = "assignment"
+        unique_together = (("lesson", "order"),)
 
     def __str__(self):
         return self.title
@@ -65,19 +84,19 @@ class CourseEnrollment(models.Model):
         return f"{self.user} — {self.course}"
 
 
-class CompletedLesson(models.Model):
+class CompletedAssignment(models.Model):
     user = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="completed_lessons"
+        User, on_delete=models.CASCADE, related_name="completed_assignments"
     )
-    lesson = models.ForeignKey(
-        Lesson, on_delete=models.CASCADE, related_name="completions"
+    assignment = models.ForeignKey(
+        Assignment, on_delete=models.CASCADE, related_name="completions"
     )
     duration = models.PositiveIntegerField(help_text="Time spent in seconds")
     error_count = models.PositiveIntegerField(default=0)
     completed_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = "completed_lesson"
+        db_table = "completed_assignment"
 
     def __str__(self):
-        return f"{self.user} — {self.lesson}"
+        return f"{self.user} — {self.assignment}"

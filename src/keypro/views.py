@@ -1,3 +1,4 @@
+from django.db.models import Count, Q
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 from rest_framework.permissions import AllowAny
 from rest_framework_simplejwt.authentication import JWTAuthentication
@@ -12,7 +13,9 @@ from keypro.serializers import (
 
 
 class CourseListView(ListAPIView):
-    queryset = Course.objects.filter(is_active=True)
+    queryset = Course.objects.filter(is_active=True).annotate(
+        total_lessons=Count("lessons", filter=Q(lessons__is_active=True))
+    )
     serializer_class = CourseListSerializer
     authentication_classes = []
     permission_classes = [AllowAny]
@@ -43,4 +46,4 @@ class LessonDetailView(RetrieveAPIView):
         return Lesson.objects.filter(
             course__slug=self.kwargs["course_slug"],
             is_active=True,
-        )
+        ).prefetch_related("assignments")

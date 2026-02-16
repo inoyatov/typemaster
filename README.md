@@ -15,7 +15,7 @@ Touch typing tutor web application backend API.
 ## Features (Planned)
 
 - Multiple keyboard layouts (US QWERTY, Cyrillic, etc.)
-- 100 sections per lesson, first 10 free
+- 100 sections per assignment, first 10 free
 - WPM, accuracy, and error key tracking
 - Voucher system (1 / 3 / 12 month plans)
 - Telegram bot OTP authentication
@@ -137,7 +137,7 @@ solo-on-keyboard/
 │   │   └── urls/
 │   ├── accounts/          # User model, auth, serializers
 │   ├── payments/          # Plans, vouchers, subscriptions
-│   └── keypro/            # Layouts, lessons, sections, sessions
+│   └── keypro/            # Courses, lessons, assignments, sessions
 ├── tests/                 # Test suite
 ├── Makefile
 └── requirements.txt
@@ -166,11 +166,11 @@ solo-on-keyboard/
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | GET | `/api/layouts/` | List keyboard layouts |
-| GET | `/api/lessons/` | List lessons for a layout |
-| GET | `/api/sections/` | List sections in a lesson |
+| GET | `/api/assignments/` | List assignments for a layout |
+| GET | `/api/sections/` | List sections in an assignment |
 | POST | `/api/sessions/` | Start a typing session |
 | PUT | `/api/sessions/:id/` | Submit session results |
-| GET | `/api/progress/` | User progress per lesson |
+| GET | `/api/progress/` | User progress per assignment |
 | GET | `/api/stats/` | WPM, accuracy, error keys |
 
 > Endpoints are planned and subject to change as views are implemented.
