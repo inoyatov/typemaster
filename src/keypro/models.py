@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import models
+from django.utils import timezone
 
 User = get_user_model()
 
@@ -68,16 +69,33 @@ class Assignment(models.Model):
 
 
 class CourseEnrollment(models.Model):
+    ACTIVE = "active"
+    COMPLETED = "completed"
+    PAUSED = "paused"
+    CANCELED = "canceled"
+    STATUS_CHOICES = [
+        (ACTIVE, "Active"),
+        (COMPLETED, "Completed"),
+        (PAUSED, "Paused"),
+        (CANCELED, "Canceled"),
+    ]
+
     user = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="enrollments"
     )
     course = models.ForeignKey(
         Course, on_delete=models.CASCADE, related_name="enrollments"
     )
+    status = models.CharField(
+        max_length=20, choices=STATUS_CHOICES, default=ACTIVE
+    )
     enrolled_at = models.DateTimeField(auto_now_add=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+    last_activity_at = models.DateTimeField(default=timezone.now)
 
     class Meta:
         db_table = "course_enrollment"
+        ordering = ("-enrolled_at",)
         unique_together = (("user", "course"),)
 
     def __str__(self):

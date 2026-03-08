@@ -3,7 +3,7 @@ from datetime import timedelta
 import pytest
 from django.utils import timezone
 
-from keypro.models import Assignment, Course, Lesson
+from keypro.models import Assignment, Course, CourseEnrollment, Lesson
 from payments.models import Subscription, SubscriptionPlan
 
 
@@ -90,3 +90,8 @@ def expired_subscription(user):
         starts_at=now - timedelta(days=31),
         expires_at=now - timedelta(days=1),
     )
+
+
+@pytest.fixture
+def enrollment(user, course):
+    return CourseEnrollment.objects.create(user=user, course=course)
