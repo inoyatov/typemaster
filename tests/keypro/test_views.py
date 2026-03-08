@@ -1,7 +1,7 @@
 import pytest
 from django.urls import reverse
 
-from keypro.models import Lesson
+from keypro.models import CompletedAssignment, Lesson
 
 
 def lesson_detail_url(course_slug, lesson_pk):
@@ -9,6 +9,94 @@ def lesson_detail_url(course_slug, lesson_pk):
         "lesson-detail",
         kwargs={"course_slug": course_slug, "pk": lesson_pk},
     )
+
+
+COURSE_LIST_URL = reverse("course-list")
+
+
+@pytest.mark.django_db
+class TestCourseListAnonymous:
+    def test_anonymous_sees_courses(self, api_client, course):
+        response = api_client.get(COURSE_LIST_URL)
+        assert response.status_code == 200
+        assert response.data["count"] == 1
+        assert response.data["results"][0]["slug"] == course.slug
+
+    def test_anonymous_progress_fields_are_defaults(
+        self, api_client, course, free_lesson
+    ):
+        response = api_client.get(COURSE_LIST_URL)
+        data = response.data["results"][0]
+        assert data["is_enrolled"] is False
+        assert data["completed_lessons"] == 0
+        assert data["progress_percent"] == 0.0
+        assert data["total_lessons"] == 1
+
+
+@pytest.mark.django_db
+class TestCourseListAuthenticatedNotEnrolled:
+    def test_not_enrolled_user(self, auth_client, course, free_lesson):
+        response = auth_client.get(COURSE_LIST_URL)
+        assert response.status_code == 200
+        data = response.data["results"][0]
+        assert data["is_enrolled"] is False
+        assert data["completed_lessons"] == 0
+        assert data["progress_percent"] == 0.0
+
+
+@pytest.mark.django_db
+class TestCourseListAuthenticatedEnrolled:
+    def test_enrolled_user_no_completions(
+        self, auth_client, course, free_lesson, enrollment
+    ):
+        response = auth_client.get(COURSE_LIST_URL)
+        data = response.data["results"][0]
+        assert data["is_enrolled"] is True
+        assert data["completed_lessons"] == 0
+        assert data["progress_percent"] == 0.0
+
+    def test_enrolled_user_with_progress(
+        self,
+        auth_client,
+        user,
+        course,
+        free_lesson,
+        free_assignment,
+        second_free_assignment,
+        enrollment,
+    ):
+        CompletedAssignment.objects.create(
+            user=user,
+            assignment=free_assignment,
+            average_speed=100,
+            mistakes_count=2,
+        )
+        response = auth_client.get(COURSE_LIST_URL)
+        data = response.data["results"][0]
+        assert data["is_enrolled"] is True
+        assert data["completed_lessons"] == 0
+        assert data["progress_percent"] == 50.0
+
+    def test_enrolled_user_fully_completed(
+        self,
+        auth_client,
+        user,
+        course,
+        free_lesson,
+        free_assignment,
+        enrollment,
+    ):
+        CompletedAssignment.objects.create(
+            user=user,
+            assignment=free_assignment,
+            average_speed=100,
+            mistakes_count=2,
+        )
+        response = auth_client.get(COURSE_LIST_URL)
+        data = response.data["results"][0]
+        assert data["is_enrolled"] is True
+        assert data["completed_lessons"] == 1
+        assert data["progress_percent"] == 100.0
 
 
 @pytest.mark.django_db
