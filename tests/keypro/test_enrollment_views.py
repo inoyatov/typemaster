@@ -22,12 +22,12 @@ class TestEnrollmentAuth:
         assert api_client.get(url).status_code == 401
 
     def test_course_enroll_requires_auth(self, api_client, course):
-        url = reverse("course-enroll", kwargs={"course_id": course.id})
+        url = reverse("course-enroll", kwargs={"course_slug": course.slug})
         assert api_client.post(url).status_code == 401
 
     def test_course_enrollment_detail_requires_auth(self, api_client, course):
         url = reverse(
-            "course-enrollment-detail", kwargs={"course_id": course.id}
+            "course-enrollment-detail", kwargs={"course_slug": course.slug}
         )
         assert api_client.get(url).status_code == 401
 
@@ -94,7 +94,7 @@ class TestEnrollmentDetail:
 @pytest.mark.django_db
 class TestCourseEnroll:
     def test_creates_new_enrollment(self, auth_client, course):
-        url = reverse("course-enroll", kwargs={"course_id": course.id})
+        url = reverse("course-enroll", kwargs={"course_slug": course.slug})
         response = auth_client.post(url)
         assert response.status_code == 201
         assert response.data["status"] == "active"
@@ -102,7 +102,7 @@ class TestCourseEnroll:
 
     def test_returns_existing_active_enrollment(self, auth_client, enrollment):
         url = reverse(
-            "course-enroll", kwargs={"course_id": enrollment.course.id}
+            "course-enroll", kwargs={"course_slug": enrollment.course.slug}
         )
         response = auth_client.post(url)
         assert response.status_code == 200
@@ -112,7 +112,7 @@ class TestCourseEnroll:
         enrollment.status = CourseEnrollment.CANCELED
         enrollment.save()
         url = reverse(
-            "course-enroll", kwargs={"course_id": enrollment.course.id}
+            "course-enroll", kwargs={"course_slug": enrollment.course.slug}
         )
         response = auth_client.post(url)
         assert response.status_code == 200
@@ -122,7 +122,7 @@ class TestCourseEnroll:
         enrollment.status = CourseEnrollment.PAUSED
         enrollment.save()
         url = reverse(
-            "course-enroll", kwargs={"course_id": enrollment.course.id}
+            "course-enroll", kwargs={"course_slug": enrollment.course.slug}
         )
         response = auth_client.post(url)
         assert response.status_code == 200
@@ -134,7 +134,7 @@ class TestCourseEnroll:
         enrollment.status = CourseEnrollment.COMPLETED
         enrollment.save()
         url = reverse(
-            "course-enroll", kwargs={"course_id": enrollment.course.id}
+            "course-enroll", kwargs={"course_slug": enrollment.course.slug}
         )
         response = auth_client.post(url)
         assert response.status_code == 200
@@ -144,12 +144,12 @@ class TestCourseEnroll:
         course = Course.objects.create(
             title="Inactive", slug="inactive", is_active=False
         )
-        url = reverse("course-enroll", kwargs={"course_id": course.id})
+        url = reverse("course-enroll", kwargs={"course_slug": course.slug})
         response = auth_client.post(url)
         assert response.status_code == 404
 
     def test_404_for_nonexistent_course(self, auth_client):
-        url = reverse("course-enroll", kwargs={"course_id": 99999})
+        url = reverse("course-enroll", kwargs={"course_slug": "nonexistent"})
         response = auth_client.post(url)
         assert response.status_code == 404
 
@@ -159,7 +159,7 @@ class TestCourseEnrollmentDetail:
     def test_returns_enrollment(self, auth_client, enrollment):
         url = reverse(
             "course-enrollment-detail",
-            kwargs={"course_id": enrollment.course.id},
+            kwargs={"course_slug": enrollment.course.slug},
         )
         response = auth_client.get(url)
         assert response.status_code == 200
@@ -167,7 +167,7 @@ class TestCourseEnrollmentDetail:
 
     def test_404_if_not_enrolled(self, auth_client, course):
         url = reverse(
-            "course-enrollment-detail", kwargs={"course_id": course.id}
+            "course-enrollment-detail", kwargs={"course_slug": course.slug}
         )
         response = auth_client.get(url)
         assert response.status_code == 404
@@ -247,6 +247,10 @@ class TestEnrollmentResponseShape:
             "status",
             "progress_percent",
             "current_lesson_id",
+            "completed_assignments",
+            "total_assignments",
+            "completed_lessons",
+            "total_lessons",
             "started_at",
             "completed_at",
             "last_activity_at",
@@ -292,7 +296,7 @@ class TestEnrollmentProgress:
             is_active=True,
         )
         CompletedAssignment.objects.create(
-            user=user, assignment=a1, duration=60
+            user=user, assignment=a1, average_speed=120, mistakes_count=0
         )
         url = reverse("enrollment-detail", kwargs={"pk": enrollment.pk})
         response = auth_client.get(url)
@@ -329,7 +333,7 @@ class TestEnrollmentProgress:
             is_active=True,
         )
         CompletedAssignment.objects.create(
-            user=user, assignment=a1, duration=60
+            user=user, assignment=a1, average_speed=120, mistakes_count=0
         )
         url = reverse("enrollment-detail", kwargs={"pk": enrollment.pk})
         response = auth_client.get(url)
@@ -352,7 +356,7 @@ class TestEnrollmentProgress:
             is_active=True,
         )
         CompletedAssignment.objects.create(
-            user=user, assignment=a1, duration=60
+            user=user, assignment=a1, average_speed=120, mistakes_count=0
         )
         url = reverse("enrollment-detail", kwargs={"pk": enrollment.pk})
         response = auth_client.get(url)

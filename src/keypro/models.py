@@ -103,18 +103,43 @@ class CourseEnrollment(models.Model):
 
 
 class CompletedAssignment(models.Model):
+    class ActionType(models.TextChoices):
+        COMPLETE = "complete", "Complete"
+
     user = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="completed_assignments"
+        User,
+        on_delete=models.CASCADE,
+        related_name="completed_assignments",
     )
     assignment = models.ForeignKey(
-        Assignment, on_delete=models.CASCADE, related_name="completions"
+        Assignment,
+        on_delete=models.CASCADE,
+        related_name="completions",
     )
-    duration = models.PositiveIntegerField(help_text="Time spent in seconds")
-    error_count = models.PositiveIntegerField(default=0)
-    completed_at = models.DateTimeField(auto_now_add=True)
+    action_type = models.CharField(
+        max_length=20,
+        choices=ActionType.choices,
+        default=ActionType.COMPLETE,
+    )
+    average_speed = models.PositiveIntegerField(
+        help_text="Average typing speed (chars/min)",
+        default=0,
+    )
+    mistakes_count = models.PositiveIntegerField(
+        default=0,
+    )
+    completed_at = models.DateTimeField(
+        default=timezone.now,
+    )
 
     class Meta:
         db_table = "completed_assignment"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "assignment"],
+                name="unique_user_assignment_completion",
+            ),
+        ]
 
     def __str__(self):
         return f"{self.user} — {self.assignment}"

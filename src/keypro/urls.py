@@ -1,6 +1,7 @@
 from django.urls import path
 
 from keypro.views import (
+    AssignmentCompletionView,
     CourseEnrollmentDetailView,
     CourseEnrollView,
     CourseListView,
@@ -10,10 +11,15 @@ from keypro.views import (
     EnrollmentResumeView,
     LessonDetailView,
     LessonListView,
+    LessonProgressView,
 )
 
 urlpatterns = [
-    path("courses/", CourseListView.as_view(), name="course-list"),
+    path(
+        "courses/",
+        CourseListView.as_view(),
+        name="course-list",
+    ),
     path(
         "courses/<slug:course_slug>/lessons/",
         LessonListView.as_view(),
@@ -23,6 +29,18 @@ urlpatterns = [
         "courses/<slug:course_slug>/lessons/<int:pk>/",
         LessonDetailView.as_view(),
         name="lesson-detail",
+    ),
+    path(
+        "courses/<slug:course_slug>/lessons/"
+        "<int:lesson_id>/assignments/"
+        "<int:assignment_id>/completion/",
+        AssignmentCompletionView.as_view(),
+        name="assignment-completion",
+    ),
+    path(
+        "courses/<slug:course_slug>/lessons/<int:lesson_id>/progress/",
+        LessonProgressView.as_view(),
+        name="lesson-progress",
     ),
     path(
         "enrollments/",
@@ -45,12 +63,12 @@ urlpatterns = [
         name="enrollment-resume",
     ),
     path(
-        "courses/<int:course_id>/enroll/",
+        "courses/<slug:course_slug>/enroll/",
         CourseEnrollView.as_view(),
         name="course-enroll",
     ),
     path(
-        "courses/<int:course_id>/enrollment/",
+        "courses/<slug:course_slug>/enrollment/",
         CourseEnrollmentDetailView.as_view(),
         name="course-enrollment-detail",
     ),

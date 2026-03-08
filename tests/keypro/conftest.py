@@ -93,5 +93,45 @@ def expired_subscription(user):
 
 
 @pytest.fixture
+def second_free_assignment(free_lesson):
+    return Assignment.objects.create(
+        lesson=free_lesson,
+        title="Second Free Assignment",
+        text_content="More free content",
+        order=2,
+        is_active=True,
+    )
+
+
+@pytest.fixture
 def enrollment(user, course):
     return CourseEnrollment.objects.create(user=user, course=course)
+
+
+@pytest.fixture
+def completion_url():
+    def _url(course_slug, lesson_id, assignment_id):
+        return (
+            f"/api/courses/{course_slug}/lessons/"
+            f"{lesson_id}/assignments/"
+            f"{assignment_id}/completion/"
+        )
+
+    return _url
+
+
+@pytest.fixture
+def lesson_progress_url():
+    def _url(course_slug, lesson_id):
+        return f"/api/courses/{course_slug}/lessons/{lesson_id}/progress/"
+
+    return _url
+
+
+@pytest.fixture
+def valid_completion_data():
+    return {
+        "action_type": "complete",
+        "average_speed": 120,
+        "mistakes_count": 3,
+    }
