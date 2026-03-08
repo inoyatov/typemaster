@@ -52,10 +52,42 @@ def get_course_list_queryset(user):
             .values("cnt")
         )
 
+        completed_lessons_sq = (
+            Lesson.objects.filter(
+                course=OuterRef("pk"),
+                is_active=True,
+            )
+            .annotate(
+                active_count=Count(
+                    "assignments",
+                    filter=Q(assignments__is_active=True),
+                    distinct=True,
+                ),
+                completed_count=Count(
+                    "assignments__completions",
+                    filter=Q(
+                        assignments__is_active=True,
+                        assignments__completions__user=user,
+                    ),
+                    distinct=True,
+                ),
+            )
+            .filter(
+                active_count__gt=0,
+                completed_count__gte=F("active_count"),
+            )
+            .order_by()
+            .values("course")
+            .annotate(cnt=Count("id"))
+            .values("cnt")
+        )
+
         qs = qs.annotate(
             is_enrolled=Exists(
                 CourseEnrollment.objects.filter(
-                    user=user, course=OuterRef("pk")
+                    user=user,
+                    course=OuterRef("pk"),
+                    status=CourseEnrollment.ACTIVE,
                 )
             ),
             total_assignments=Coalesce(
@@ -64,12 +96,16 @@ def get_course_list_queryset(user):
             completed_assignments=Coalesce(
                 Subquery(completed_assignments_sq), Value(0)
             ),
+            completed_lessons=Coalesce(
+                Subquery(completed_lessons_sq), Value(0)
+            ),
         )
     else:
         qs = qs.annotate(
             is_enrolled=Value(False),
             total_assignments=Value(0),
             completed_assignments=Value(0),
+            completed_lessons=Value(0),
         )
 
     return qs

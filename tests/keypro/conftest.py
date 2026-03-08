@@ -109,6 +109,15 @@ def enrollment(user, course):
 
 
 @pytest.fixture
+def canceled_enrollment(user, course):
+    return CourseEnrollment.objects.create(
+        user=user,
+        course=course,
+        status=CourseEnrollment.CANCELED,
+    )
+
+
+@pytest.fixture
 def completion_url():
     def _url(course_slug, lesson_id, assignment_id):
         return (
