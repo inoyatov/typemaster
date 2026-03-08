@@ -1,4 +1,3 @@
-from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework import status
@@ -28,6 +27,7 @@ from keypro.serializers import (
 )
 from keypro.services import (
     complete_assignment,
+    get_course_list_queryset,
     get_enrollment_queryset_with_progress,
     get_lesson_progress,
 )
@@ -35,12 +35,12 @@ from payments.models import Subscription
 
 
 class CourseListView(ListAPIView):
-    queryset = Course.objects.filter(is_active=True).annotate(
-        total_lessons=Count("lessons", filter=Q(lessons__is_active=True))
-    )
     serializer_class = CourseListSerializer
-    authentication_classes = []
+    authentication_classes = [JWTAuthentication]
     permission_classes = [AllowAny]
+
+    def get_queryset(self):
+        return get_course_list_queryset(self.request.user)
 
 
 class LessonListView(ListAPIView):

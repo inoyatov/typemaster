@@ -15,6 +15,9 @@ from keypro.services import (
 
 class CourseListSerializer(serializers.ModelSerializer):
     total_lessons = serializers.IntegerField(read_only=True)
+    is_enrolled = serializers.BooleanField(read_only=True, default=False)
+    completed_lessons = serializers.SerializerMethodField()
+    progress_percent = serializers.SerializerMethodField()
 
     class Meta:
         model = Course
@@ -29,7 +32,23 @@ class CourseListSerializer(serializers.ModelSerializer):
             "order",
             "created_at",
             "total_lessons",
+            "is_enrolled",
+            "completed_lessons",
+            "progress_percent",
         ]
+
+    def get_completed_lessons(self, obj):
+        if not getattr(obj, "is_enrolled", False):
+            return 0
+        user = self.context["request"].user
+        return get_completed_lessons_count(user, obj)
+
+    def get_progress_percent(self, obj):
+        total = getattr(obj, "total_assignments", 0)
+        if total == 0:
+            return 0.0
+        completed = getattr(obj, "completed_assignments", 0)
+        return round((completed / total) * 100, 1)
 
 
 class LessonListSerializer(serializers.ModelSerializer):

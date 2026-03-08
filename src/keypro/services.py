@@ -13,9 +13,66 @@ from django.utils import timezone
 from keypro.models import (
     Assignment,
     CompletedAssignment,
+    Course,
     CourseEnrollment,
     Lesson,
 )
+
+
+def get_course_list_queryset(user):
+    from django.db.models import Exists
+
+    qs = Course.objects.filter(is_active=True).annotate(
+        total_lessons=Count("lessons", filter=Q(lessons__is_active=True)),
+    )
+
+    if user.is_authenticated:
+        total_assignments_sq = (
+            Assignment.objects.filter(
+                lesson__course__pk=OuterRef("pk"),
+                lesson__is_active=True,
+                is_active=True,
+            )
+            .order_by()
+            .values("lesson__course")
+            .annotate(cnt=Count("id"))
+            .values("cnt")
+        )
+
+        completed_assignments_sq = (
+            CompletedAssignment.objects.filter(
+                user=user,
+                assignment__lesson__course__pk=OuterRef("pk"),
+                assignment__lesson__is_active=True,
+                assignment__is_active=True,
+            )
+            .order_by()
+            .values("assignment__lesson__course")
+            .annotate(cnt=Count("id"))
+            .values("cnt")
+        )
+
+        qs = qs.annotate(
+            is_enrolled=Exists(
+                CourseEnrollment.objects.filter(
+                    user=user, course=OuterRef("pk")
+                )
+            ),
+            total_assignments=Coalesce(
+                Subquery(total_assignments_sq), Value(0)
+            ),
+            completed_assignments=Coalesce(
+                Subquery(completed_assignments_sq), Value(0)
+            ),
+        )
+    else:
+        qs = qs.annotate(
+            is_enrolled=Value(False),
+            total_assignments=Value(0),
+            completed_assignments=Value(0),
+        )
+
+    return qs
 
 
 def complete_assignment(*, user, assignment, average_speed, mistakes_count):
