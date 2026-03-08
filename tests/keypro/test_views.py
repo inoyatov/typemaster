@@ -77,6 +77,15 @@ class TestCourseListAuthenticatedEnrolled:
         assert data["completed_lessons"] == 0
         assert data["progress_percent"] == 50.0
 
+    def test_canceled_enrollment_not_enrolled(
+        self, auth_client, course, free_lesson, canceled_enrollment
+    ):
+        response = auth_client.get(COURSE_LIST_URL)
+        data = response.data["results"][0]
+        assert data["is_enrolled"] is False
+        assert data["completed_lessons"] == 0
+        assert data["progress_percent"] == 0.0
+
     def test_enrolled_user_fully_completed(
         self,
         auth_client,
