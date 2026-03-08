@@ -60,7 +60,7 @@ User                    Frontend              Backend
 
 All endpoints require `Authorization: Bearer <access_token>` header. Unauthenticated requests return `401`.
 
-### 1. `POST /api/courses/{course_id}/enroll/`
+### 1. `POST /api/courses/{course_slug}/enroll/`
 
 Enroll in a course. Idempotent — safe to call multiple times.
 
@@ -128,9 +128,9 @@ Get a single enrollment by ID. Returns `404` if the enrollment belongs to anothe
 
 **Response (200):** Same shape as a single item from the list above.
 
-### 4. `GET /api/courses/{course_id}/enrollment/`
+### 4. `GET /api/courses/{course_slug}/enrollment/`
 
-Get enrollment by course ID. Useful when you have the course context and want to check enrollment status.
+Get enrollment by course slug. Useful when you have the course context and want to check enrollment status.
 
 **Response (200):** Same enrollment shape.
 
@@ -203,7 +203,7 @@ Resume a canceled or paused enrollment. No request body needed.
 
 ### Checking enrollment status on course page
 
-Use `GET /api/courses/{course_id}/enrollment/` to check if the user is enrolled. A `404` means not enrolled — show the "Enroll" button. A `200` means enrolled — show progress and status.
+Use `GET /api/courses/{course_slug}/enrollment/` to check if the user is enrolled. A `404` means not enrolled — show the "Enroll" button. A `200` means enrolled — show progress and status.
 
 ### Progress bar
 

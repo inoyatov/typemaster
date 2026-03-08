@@ -1,6 +1,12 @@
 from django.contrib import admin
 
-from .models import Assignment, Course, CourseEnrollment, Lesson
+from .models import (
+    Assignment,
+    CompletedAssignment,
+    Course,
+    CourseEnrollment,
+    Lesson,
+)
 
 
 @admin.register(Course)
@@ -29,3 +35,17 @@ class AssignmentAdmin(admin.ModelAdmin):
 class CourseEnrollmentAdmin(admin.ModelAdmin):
     list_display = ("user", "course", "status", "enrolled_at")
     list_filter = ("status",)
+
+
+@admin.register(CompletedAssignment)
+class CompletedAssignmentAdmin(admin.ModelAdmin):
+    list_display = (
+        "user",
+        "assignment",
+        "action_type",
+        "average_speed",
+        "mistakes_count",
+        "completed_at",
+    )
+    list_filter = ("action_type",)
+    search_fields = ("user__email", "assignment__title")
