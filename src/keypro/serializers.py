@@ -7,10 +7,6 @@ from keypro.models import (
     CourseEnrollment,
     Lesson,
 )
-from keypro.services import (
-    get_completed_lessons_count,
-    get_current_lesson_id,
-)
 
 
 class CourseListSerializer(serializers.ModelSerializer):
@@ -108,8 +104,10 @@ class EnrollmentSerializer(serializers.ModelSerializer):
     completed_assignments = serializers.IntegerField(read_only=True)
     total_lessons = serializers.IntegerField(read_only=True)
     progress_percent = serializers.SerializerMethodField()
-    current_lesson_id = serializers.SerializerMethodField()
-    completed_lessons = serializers.SerializerMethodField()
+    current_lesson_id = serializers.IntegerField(
+        read_only=True, allow_null=True, default=None
+    )
+    completed_lessons = serializers.IntegerField(read_only=True, default=0)
 
     class Meta:
         model = CourseEnrollment
@@ -135,12 +133,6 @@ class EnrollmentSerializer(serializers.ModelSerializer):
             return 0.0
         completed = getattr(obj, "completed_assignments", 0)
         return round((completed / total) * 100, 1)
-
-    def get_current_lesson_id(self, obj):
-        return get_current_lesson_id(obj.user, obj.course)
-
-    def get_completed_lessons(self, obj):
-        return get_completed_lessons_count(obj.user, obj.course)
 
 
 class AssignmentCompletionInputSerializer(serializers.Serializer):

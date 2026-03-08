@@ -3,6 +3,8 @@ import logging
 from datetime import timedelta
 
 from django.conf import settings
+from django.db.models import Count, OuterRef, Subquery, Value
+from django.db.models.functions import Coalesce
 from django.http import JsonResponse
 from django.utils import timezone
 from django.utils.decorators import method_decorator
@@ -26,7 +28,11 @@ from accounts.services import (
     send_message,
     send_remove_keyboard,
 )
-from keypro.models import CourseEnrollment
+from keypro.models import (
+    Assignment,
+    CompletedAssignment,
+    CourseEnrollment,
+)
 from payments.models import Subscription
 
 logger = logging.getLogger(__name__)
@@ -211,6 +217,42 @@ class MyEnrolledCoursesView(ListAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return CourseEnrollment.objects.filter(
-            user=self.request.user,
-        ).select_related("course")
+        user = self.request.user
+
+        total_assignments_sq = (
+            Assignment.objects.filter(
+                lesson__course__pk=OuterRef("course_id"),
+                lesson__is_active=True,
+                is_active=True,
+            )
+            .order_by()
+            .values("lesson__course")
+            .annotate(cnt=Count("id"))
+            .values("cnt")
+        )
+
+        completed_assignments_sq = (
+            CompletedAssignment.objects.filter(
+                user=user,
+                assignment__lesson__course__pk=OuterRef("course_id"),
+                assignment__lesson__is_active=True,
+                assignment__is_active=True,
+            )
+            .order_by()
+            .values("assignment__lesson__course")
+            .annotate(cnt=Count("id"))
+            .values("cnt")
+        )
+
+        return (
+            CourseEnrollment.objects.filter(user=user)
+            .select_related("course")
+            .annotate(
+                total_assignments=Coalesce(
+                    Subquery(total_assignments_sq), Value(0)
+                ),
+                completed_assignments=Coalesce(
+                    Subquery(completed_assignments_sq), Value(0)
+                ),
+            )
+        )
