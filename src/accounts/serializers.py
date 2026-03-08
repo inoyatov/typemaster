@@ -2,7 +2,6 @@ from django.conf import settings
 from rest_framework import serializers
 
 from accounts.models import AuthCode, User
-from keypro.models import CourseEnrollment
 from payments.models import Subscription
 
 
@@ -57,21 +56,3 @@ class MySubscriptionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Subscription
         fields = ["plan_name", "starts_at", "expires_at", "is_active"]
-
-
-class MyEnrolledCourseSerializer(serializers.ModelSerializer):
-    course_title = serializers.CharField(source="course.title", read_only=True)
-    course_slug = serializers.CharField(source="course.slug", read_only=True)
-    total_assignments = serializers.IntegerField(read_only=True, default=0)
-    completed_assignments = serializers.IntegerField(read_only=True, default=0)
-
-    class Meta:
-        model = CourseEnrollment
-        fields = [
-            "id",
-            "course_title",
-            "course_slug",
-            "total_assignments",
-            "completed_assignments",
-            "enrolled_at",
-        ]

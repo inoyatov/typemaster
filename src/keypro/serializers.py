@@ -9,7 +9,16 @@ from keypro.models import (
 )
 
 
-class CourseListSerializer(serializers.ModelSerializer):
+class ProgressPercentMixin:
+    def get_progress_percent(self, obj):
+        total = getattr(obj, "total_assignments", 0)
+        if total == 0:
+            return 0.0
+        completed = getattr(obj, "completed_assignments", 0)
+        return round((completed / total) * 100, 1)
+
+
+class CourseListSerializer(ProgressPercentMixin, serializers.ModelSerializer):
     total_lessons = serializers.IntegerField(read_only=True)
     is_enrolled = serializers.BooleanField(read_only=True, default=False)
     completed_lessons = serializers.IntegerField(read_only=True, default=0)
@@ -33,15 +42,12 @@ class CourseListSerializer(serializers.ModelSerializer):
             "progress_percent",
         ]
 
-    def get_progress_percent(self, obj):
-        total = getattr(obj, "total_assignments", 0)
-        if total == 0:
-            return 0.0
-        completed = getattr(obj, "completed_assignments", 0)
-        return round((completed / total) * 100, 1)
-
 
 class LessonListSerializer(serializers.ModelSerializer):
+    is_completed = serializers.BooleanField(
+        read_only=True, default=None, allow_null=True
+    )
+
     class Meta:
         model = Lesson
         fields = [
@@ -52,6 +58,7 @@ class LessonListSerializer(serializers.ModelSerializer):
             "is_free",
             "is_active",
             "created_at",
+            "is_completed",
         ]
 
 
@@ -87,8 +94,9 @@ class LessonDetailSerializer(serializers.ModelSerializer):
         ]
 
     def get_assignments(self, obj):
-        active_assignments = obj.assignments.filter(is_active=True)
-        return AssignmentEmbeddedSerializer(active_assignments, many=True).data
+        return AssignmentEmbeddedSerializer(
+            obj.assignments.all(), many=True
+        ).data
 
 
 class EnrollmentCourseSerializer(serializers.ModelSerializer):
@@ -97,7 +105,7 @@ class EnrollmentCourseSerializer(serializers.ModelSerializer):
         fields = ["id", "slug", "title"]
 
 
-class EnrollmentSerializer(serializers.ModelSerializer):
+class EnrollmentSerializer(ProgressPercentMixin, serializers.ModelSerializer):
     course = EnrollmentCourseSerializer(read_only=True)
     started_at = serializers.DateTimeField(source="enrolled_at", read_only=True)
     total_assignments = serializers.IntegerField(read_only=True)
@@ -126,13 +134,6 @@ class EnrollmentSerializer(serializers.ModelSerializer):
             "last_activity_at",
         ]
         read_only_fields = fields
-
-    def get_progress_percent(self, obj):
-        total = getattr(obj, "total_assignments", 0)
-        if total == 0:
-            return 0.0
-        completed = getattr(obj, "completed_assignments", 0)
-        return round((completed / total) * 100, 1)
 
 
 class AssignmentCompletionInputSerializer(serializers.Serializer):

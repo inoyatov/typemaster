@@ -1,11 +1,15 @@
 from django.db import transaction
 from django.db.models import (
+    BooleanField,
+    Case,
     Count,
+    Exists,
     F,
     OuterRef,
     Q,
     Subquery,
     Value,
+    When,
 )
 from django.db.models.functions import Coalesce
 from django.utils import timezone
@@ -20,8 +24,6 @@ from keypro.models import (
 
 
 def get_course_list_queryset(user):
-    from django.db.models import Exists
-
     qs = Course.objects.filter(is_active=True).annotate(
         total_lessons=Count("lessons", filter=Q(lessons__is_active=True)),
     )
@@ -111,6 +113,54 @@ def get_course_list_queryset(user):
     return qs
 
 
+def get_lesson_list_queryset(user, course_slug):
+    qs = Lesson.objects.filter(
+        course__slug=course_slug,
+        is_active=True,
+    )
+
+    has_active_enrollment = (
+        user.is_authenticated
+        and CourseEnrollment.objects.filter(
+            user=user,
+            course__slug=course_slug,
+            status=CourseEnrollment.ACTIVE,
+        ).exists()
+    )
+
+    if has_active_enrollment:
+        qs = qs.annotate(
+            _active_count=Count(
+                "assignments",
+                filter=Q(assignments__is_active=True),
+                distinct=True,
+            ),
+            _completed_count=Count(
+                "assignments__completions",
+                filter=Q(
+                    assignments__is_active=True,
+                    assignments__completions__user=user,
+                ),
+                distinct=True,
+            ),
+            is_completed=Case(
+                When(
+                    _active_count__gt=0,
+                    _completed_count__gte=F("_active_count"),
+                    then=Value(True),
+                ),
+                default=Value(False),
+                output_field=BooleanField(),
+            ),
+        )
+    else:
+        qs = qs.annotate(
+            is_completed=Value(None, output_field=BooleanField()),
+        )
+
+    return qs
+
+
 def complete_assignment(*, user, assignment, average_speed, mistakes_count):
     with transaction.atomic():
         completion, created = CompletedAssignment.objects.update_or_create(
@@ -188,64 +238,6 @@ def get_lesson_progress(*, user, lesson):
         ),
         "completed_at": completed_at,
     }
-
-
-def get_current_lesson_id(user, course):
-    return (
-        Lesson.objects.filter(
-            course=course,
-            is_active=True,
-        )
-        .annotate(
-            active_count=Count(
-                "assignments",
-                filter=Q(assignments__is_active=True),
-                distinct=True,
-            ),
-            completed_count=Count(
-                "assignments__completions",
-                filter=Q(
-                    assignments__is_active=True,
-                    assignments__completions__user=user,
-                ),
-                distinct=True,
-            ),
-        )
-        .filter(active_count__gt=0)
-        .exclude(active_count=F("completed_count"))
-        .order_by("order")
-        .values_list("id", flat=True)
-        .first()
-    )
-
-
-def get_completed_lessons_count(user, course):
-    return (
-        Lesson.objects.filter(
-            course=course,
-            is_active=True,
-        )
-        .annotate(
-            active_count=Count(
-                "assignments",
-                filter=Q(assignments__is_active=True),
-                distinct=True,
-            ),
-            completed_count=Count(
-                "assignments__completions",
-                filter=Q(
-                    assignments__is_active=True,
-                    assignments__completions__user=user,
-                ),
-                distinct=True,
-            ),
-        )
-        .filter(
-            active_count__gt=0,
-            completed_count__gte=F("active_count"),
-        )
-        .count()
-    )
 
 
 def get_enrollment_queryset_with_progress(user):
