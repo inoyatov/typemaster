@@ -11,6 +11,13 @@ def lesson_detail_url(course_slug, lesson_pk):
     )
 
 
+def lesson_list_url(course_slug):
+    return reverse(
+        "lesson-list",
+        kwargs={"course_slug": course_slug},
+    )
+
+
 COURSE_LIST_URL = reverse("course-list")
 
 
@@ -194,3 +201,107 @@ class TestLessonDetailViewInactiveLesson:
         url = lesson_detail_url(course.slug, lesson.pk)
         response = api_client.get(url)
         assert response.status_code == 404
+
+
+@pytest.mark.django_db
+class TestLessonListAnonymous:
+    def test_anonymous_sees_lessons(self, api_client, course, free_lesson):
+        url = lesson_list_url(course.slug)
+        response = api_client.get(url)
+        assert response.status_code == 200
+        assert response.data["count"] == 1
+        assert response.data["results"][0]["title"] == "Free Lesson"
+
+    def test_anonymous_is_completed_is_none(
+        self, api_client, course, free_lesson
+    ):
+        url = lesson_list_url(course.slug)
+        response = api_client.get(url)
+        assert response.data["results"][0]["is_completed"] is None
+
+
+@pytest.mark.django_db
+class TestLessonListAuthenticatedNotEnrolled:
+    def test_not_enrolled_is_completed_is_none(
+        self, auth_client, course, free_lesson
+    ):
+        url = lesson_list_url(course.slug)
+        response = auth_client.get(url)
+        assert response.status_code == 200
+        assert response.data["results"][0]["is_completed"] is None
+
+
+@pytest.mark.django_db
+class TestLessonListAuthenticatedEnrolled:
+    def test_no_completions_is_false(
+        self,
+        auth_client,
+        course,
+        free_lesson,
+        free_assignment,
+        enrollment,
+    ):
+        url = lesson_list_url(course.slug)
+        response = auth_client.get(url)
+        assert response.data["results"][0]["is_completed"] is False
+
+    def test_partial_completion_is_false(
+        self,
+        auth_client,
+        user,
+        course,
+        free_lesson,
+        free_assignment,
+        second_free_assignment,
+        enrollment,
+    ):
+        CompletedAssignment.objects.create(
+            user=user,
+            assignment=free_assignment,
+            average_speed=100,
+            mistakes_count=2,
+        )
+        url = lesson_list_url(course.slug)
+        response = auth_client.get(url)
+        assert response.data["results"][0]["is_completed"] is False
+
+    def test_full_completion_is_true(
+        self,
+        auth_client,
+        user,
+        course,
+        free_lesson,
+        free_assignment,
+        second_free_assignment,
+        enrollment,
+    ):
+        CompletedAssignment.objects.create(
+            user=user,
+            assignment=free_assignment,
+            average_speed=100,
+            mistakes_count=2,
+        )
+        CompletedAssignment.objects.create(
+            user=user,
+            assignment=second_free_assignment,
+            average_speed=110,
+            mistakes_count=1,
+        )
+        url = lesson_list_url(course.slug)
+        response = auth_client.get(url)
+        assert response.data["results"][0]["is_completed"] is True
+
+
+@pytest.mark.django_db
+class TestLessonListCanceledEnrollment:
+    def test_canceled_enrollment_is_completed_is_none(
+        self,
+        auth_client,
+        course,
+        free_lesson,
+        free_assignment,
+        canceled_enrollment,
+    ):
+        url = lesson_list_url(course.slug)
+        response = auth_client.get(url)
+        assert response.data["results"][0]["is_completed"] is None

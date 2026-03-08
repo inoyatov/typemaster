@@ -1,3 +1,4 @@
+from django.db.models import Prefetch
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework import status
@@ -29,6 +30,7 @@ from keypro.services import (
     complete_assignment,
     get_course_list_queryset,
     get_enrollment_queryset_with_progress,
+    get_lesson_list_queryset,
     get_lesson_progress,
 )
 from payments.models import Subscription
@@ -45,15 +47,14 @@ class CourseListView(ListAPIView):
 
 class LessonListView(ListAPIView):
     serializer_class = LessonListSerializer
-    authentication_classes = []
+    authentication_classes = [JWTAuthentication]
     permission_classes = [AllowAny]
 
     def get_queryset(self):
         if getattr(self, "swagger_fake_view", False):
             return Lesson.objects.none()
-        return Lesson.objects.filter(
-            course__slug=self.kwargs["course_slug"],
-            is_active=True,
+        return get_lesson_list_queryset(
+            self.request.user, self.kwargs["course_slug"]
         )
 
 
@@ -68,7 +69,12 @@ class LessonDetailView(RetrieveAPIView):
         return Lesson.objects.filter(
             course__slug=self.kwargs["course_slug"],
             is_active=True,
-        ).prefetch_related("assignments")
+        ).prefetch_related(
+            Prefetch(
+                "assignments",
+                queryset=Assignment.objects.filter(is_active=True),
+            )
+        )
 
 
 class EnrollmentListView(ListAPIView):
