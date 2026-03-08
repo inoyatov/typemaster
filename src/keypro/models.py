@@ -43,6 +43,12 @@ class Lesson(models.Model):
         ordering = ("order",)
         db_table = "lesson"
         unique_together = (("course", "order"),)
+        indexes = [
+            models.Index(
+                fields=["course", "is_active"],
+                name="lesson_course_active",
+            ),
+        ]
 
     def __str__(self):
         return self.title
@@ -63,6 +69,12 @@ class Assignment(models.Model):
         ordering = ("order",)
         db_table = "assignment"
         unique_together = (("lesson", "order"),)
+        indexes = [
+            models.Index(
+                fields=["lesson", "is_active"],
+                name="assignment_lesson_active",
+            ),
+        ]
 
     def __str__(self):
         return self.title

@@ -38,6 +38,12 @@ class Subscription(models.Model):
     class Meta:
         db_table = "subscription"
         ordering = ("-created_at",)
+        indexes = [
+            models.Index(
+                fields=["user", "expires_at"],
+                name="subscription_user_expires",
+            ),
+        ]
 
     def __str__(self):
         return f"{self.user} — {self.plan.name}"

@@ -285,6 +285,62 @@ def get_enrollment_queryset_with_progress(user):
         .values("cnt")
     )
 
+    completed_lessons_sq = (
+        Lesson.objects.filter(
+            course__pk=OuterRef("course_id"),
+            is_active=True,
+        )
+        .annotate(
+            active_count=Count(
+                "assignments",
+                filter=Q(assignments__is_active=True),
+                distinct=True,
+            ),
+            completed_count=Count(
+                "assignments__completions",
+                filter=Q(
+                    assignments__is_active=True,
+                    assignments__completions__user=user,
+                ),
+                distinct=True,
+            ),
+        )
+        .filter(
+            active_count__gt=0,
+            completed_count__gte=F("active_count"),
+        )
+        .order_by()
+        .values("course")
+        .annotate(cnt=Count("id"))
+        .values("cnt")
+    )
+
+    current_lesson_id_sq = (
+        Lesson.objects.filter(
+            course__pk=OuterRef("course_id"),
+            is_active=True,
+        )
+        .annotate(
+            active_count=Count(
+                "assignments",
+                filter=Q(assignments__is_active=True),
+                distinct=True,
+            ),
+            completed_count=Count(
+                "assignments__completions",
+                filter=Q(
+                    assignments__is_active=True,
+                    assignments__completions__user=user,
+                ),
+                distinct=True,
+            ),
+        )
+        .filter(active_count__gt=0)
+        .exclude(active_count=F("completed_count"))
+        .order_by("order")
+        .values("id")[:1]
+    )
+
     return (
         CourseEnrollment.objects.filter(user=user)
         .select_related("course")
@@ -301,5 +357,10 @@ def get_enrollment_queryset_with_progress(user):
                 Subquery(total_lessons_sq),
                 Value(0),
             ),
+            completed_lessons=Coalesce(
+                Subquery(completed_lessons_sq),
+                Value(0),
+            ),
+            current_lesson_id=Subquery(current_lesson_id_sq),
         )
     )
